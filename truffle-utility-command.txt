@@ -1,0 +1,33 @@
+cr = MPECrowdsale.at(MPECrowdsale.address)
+cr.token.call().then(function(result){tk = MPEToken.at(result); return tk;})
+
+cr.rate.call().then(function(result) {return web3.fromWei(result.toNumber(), "ether" );});
+
+cr.sendTransaction({from: web3.eth.accounts[9],gas: 4700000,value: web3.toWei(9, "ether")}).then(function(result) {return result;});
+
+tk.balanceOf.call(web3.eth.accounts[4]).then(function(result) {return web3.fromWei(result.toNumber(), "ether" );});
+tk.balanceOf.call(web3.eth.accounts[9]).then(function(result) {return web3.fromWei(result.toNumber(), "ether" );});
+tk.balanceOf.call(cr.address).then(function(result) {return web3.fromWei(result.toNumber(), "ether" );});
+
+cr.soldToken.call().then(function(result) {return web3.fromWei(result.toNumber(), "ether" );});
+cr.bonusToken.call().then(function(result) {return web3.fromWei(result.toNumber(), "ether" );});
+
+
+console.log(web3.fromWei(web3.eth.getBalance(web3.eth.accounts[0]), "ether" ).toNumber())
+console.log(web3.fromWei(web3.eth.getBalance(web3.eth.accounts[1]), "ether" ).toNumber())
+console.log(web3.fromWei(web3.eth.getBalance(web3.eth.accounts[2]), "ether" ).toNumber())
+console.log(web3.fromWei(web3.eth.getBalance(web3.eth.accounts[3]), "ether" ).toNumber())
+console.log(web3.fromWei(web3.eth.getBalance(web3.eth.accounts[4]), "ether" ).toNumber())
+console.log(web3.fromWei(web3.eth.getBalance(web3.eth.accounts[5]), "ether" ).toNumber())
+console.log(web3.fromWei(web3.eth.getBalance(web3.eth.accounts[6]), "ether" ).toNumber())
+console.log(web3.fromWei(web3.eth.getBalance(web3.eth.accounts[7]), "ether" ).toNumber())
+console.log(web3.fromWei(web3.eth.getBalance(web3.eth.accounts[8]), "ether" ).toNumber())
+console.log(web3.fromWei(web3.eth.getBalance(web3.eth.accounts[9]), "ether" ).toNumber())
+
+
+events = cr.allEvents({fromBlock: 0, toBlock: 'latest'});
+events.get( (error, log) => {event_data = log;});
+event_data.forEach(function(x){ console.log( x.args.msgText + ': ' + web3.fromWei(x.args.msgVal,"ether") ); });
+
+console.log(event_data[9].args.msgText + ': ' +web3.fromWei(event_data[9].args.msgVal,"ether").toNumber())
+
