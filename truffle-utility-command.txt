@@ -39,9 +39,3 @@ events.get( (error, log) => {event_data = log;});
 event_data.forEach(function(x){ console.log( x.args.msgText + ': ' + web3.fromWei(x.args.msgVal,"ether") ); });
 
 console.log(event_data[9].args.msgText + ': ' +web3.fromWei(event_data[9].args.msgVal,"ether").toNumber())
-
-
-
-
-115 000 000 000 000 000 000
-115 000 000 000 000 000 00
