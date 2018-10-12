@@ -13,28 +13,28 @@ module.exports = {
 			host: "localhost",
 			port: 8545,
 			gas: 4700000,
-			gasPrice: web3.toWei("25", "gwei"),
+			gasPrice: web3.toWei("21", "gwei"),
 			network_id: "*" // Match any network id
 		}
 
 		,ropsten: {
 			provider: new WalletProvider( Wallet.fromPrivateKey( new Buffer( MPEConfig.networks['ropsten'].operator.key, 'hex' ) ), MPEConfig.networks['ropsten'].url ),
 			gas: 4700000,
-			gasPrice: web3.toWei("25", "gwei"),
+			gasPrice: web3.toWei("21", "gwei"),
 			network_id: "3",
 		}
 
 		,rinkeby: {
 			provider: new WalletProvider( Wallet.fromPrivateKey( new Buffer( MPEConfig.networks['rinkeby'].operator.key, 'hex' ) ), MPEConfig.networks['rinkeby'].url ),
 			gas: 4700000,
-			gasPrice: web3.toWei("25", "gwei"),
+			gasPrice: web3.toWei("21", "gwei"),
 			network_id: "4",
 		}
 
 		,mainnet: {
 			provider: new WalletProvider( Wallet.fromPrivateKey( new Buffer( MPEConfig.networks['mainnet'].operator.key, 'hex' ) ), MPEConfig.networks['mainnet'].url ),
 			gas: 4700000,
-			gasPrice: web3.toWei("25", "gwei"),
+			gasPrice: web3.toWei("21", "gwei"),
 			network_id: "1",
 		}
     },

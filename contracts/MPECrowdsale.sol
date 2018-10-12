@@ -15,23 +15,22 @@ contract MPECrowdsale is FinalizableCrowdsale, Pausable
 {
 	using SafeMath for uint256;
 	
-	uint256 private constant p100        = 100 * 10e18;
-	uint256 private constant p10         = 10  * 10e18;
-	uint256 private constant precision   = 10e6;
+	uint256 private constant p100        = 100 * 10**18;
+	uint256 private constant p10         = 10  * 10**18;
+	uint256 private constant precision   = 10**6;
 	
 	// Setted at deploy time for debug purpose
-	uint256 private ICO_START;   	// 1538352000 = 01/10/2018 @ 12:00am (UTC)
-	uint256 private ICO_STAGE_2; 	// 1539648000 = 16/10/2018 @ 12:00am (UTC)
-	uint256 private ICO_STAGE_3; 	// 1542672000 = 20/11/2018 @ 12:00am (UTC)
-	uint256 private ICO_END;     	// 1546300800 = 01/01/2019 @ 12:00am (UTC)
+	uint256 private ICO_START;   	// 1539302400 => 2018-10-12 12:00am (UTC)
+	uint256 private ICO_STAGE_2; 	// 1540944000 => 2018-10-31 12:00am (UTC)
+	uint256 private ICO_STAGE_3; 	// 1543190400 => 2018-11-26 12:00am (UTC)
+	uint256 private ICO_END;     	// 1551139200 => 2019-02-26 12:00am (UTC)
 	
-	uint256 public constant TOKEN_CAP = 37.5  * 10e6 * 10e18; // 37,5 million MPEs total supply
-	uint256 public constant CAP_10P   =  3.75 * 10e6 * 10e18; // 10% of the TOKEN_CAP
-	uint256 public constant CAP_20P   =  7.5  * 10e6 * 10e18; // 20% of the TOKEN_CAP
-	
-	address public walletOWN;		// Address to collet the funds
+	uint256 public constant TOKEN_CAP = 37.5  * 10**6 * 10**18; // 37,50m MPEs total supply
+	uint256 public constant CAP_10P   =  3.75 * 10**6 * 10**18; //  3,75m (10%) of the TOKEN_CAP
+	uint256 public constant CAP_20P   =  7.5  * 10**6 * 10**18; //  7,50m (20%) of the TOKEN_CAP
 	
 	address public operator;		// Address of the operator of the Contract for the periodic exchange rate update
+	address public walletOWN;		// Address to collet the funds
 	
 	uint256 public soldToken  = 0;	// Amount of token sold
 	uint256 public bonusToken = 0;	// Amount of bonus token provided
@@ -41,12 +40,14 @@ contract MPECrowdsale is FinalizableCrowdsale, Pausable
 	
 	enum stage { notStarted, stage1, stage2, stage3, closed }
 
-	uint256 public constant tokenPrice   = 11.5 * 10e18;	// 11,5 €uro x token
-	uint256 public constant stage1Bonus  = 30   * 10e18;
-	uint256 public constant stage2Bonus  = 20   * 10e18;
-	uint256 public constant stage3Bonus  = 10   * 10e18;
+	uint256 public constant tokenPrice   = 11.5 * 10**18;	// 11,5 €uro x token
 	
-	//event evDebug( string msgText, uint256 msgVal);
+	uint256 public constant stage1Bonus  = 30   * 10**18;
+	uint256 public constant stage2Bonus  = 20   * 10**18;
+	uint256 public constant stage3Bonus  = 10   * 10**18;
+	
+	//event Debug( string msgText, uint256 msgVal);
+	event TokenSent(address wallet, uint256 amount, uint256 bonus);
 	event WalletOWNUpdated(address oldWallet, address newWallet);
 	event OperatorUpdated(address oldOperator, address newOperator);
 	event RateUpdated(uint256 oldRate, uint256 newRate);
@@ -65,11 +66,11 @@ contract MPECrowdsale is FinalizableCrowdsale, Pausable
 	 * @param _icoStage2  Timestamp of the ICO Stage 2 Start
 	 * @param _icoStage3  Timestamp of the ICO Stage 3 Start
 	 * @param _icoEnd     Timestamp of the ICO End
+	 * @param _operator   Address of the operator of the Contract for the periodic exchange rate update
+	 * @param _walletOWN  Address to collet the funds
 	 * @param _walletADV1 Address of the 1st advisor to collet the 20% of the token at deploy time
 	 * @param _walletADV2 Address of the 2st advisor to collet the 10% of the token at deploy time
 	 * @param _walletADV3 Address of the 3st advisor to collet the 20% of the token at finalize time
-	 * @param _walletOWN  Address to collet the funds
-	 * @param _operator   Address of the operator of the Contract for the periodic exchange rate update
 	 */
 	constructor(
 			uint256 _rate,
@@ -77,21 +78,21 @@ contract MPECrowdsale is FinalizableCrowdsale, Pausable
 			uint256 _icoStage2,
 			uint256 _icoStage3,
 			uint256 _icoEnd,
+			address _operator,
+			address _walletOWN,		
 			address _walletADV1,
 			address _walletADV2,
-			address _walletADV3,		
-			address _walletOWN,		
-			address _operator
+			address _walletADV3		
 	) 
 		public
 		Crowdsale(_rate, _walletOWN, ERC20( new MPEToken(TOKEN_CAP) ) )
 		TimedCrowdsale(_icoStart, _icoEnd)
 	{
+		require(_operator   != address(0));
+		require(_walletOWN  != address(0));
 		require(_walletADV1 != address(0));
 		require(_walletADV2 != address(0));
 		require(_walletADV3 != address(0));
-		require(_walletOWN  != address(0));
-		require(_operator   != address(0));
 		
 		require(_walletADV1 != _walletADV2 && _walletADV1 != _walletADV3 && _walletADV1 != _walletOWN && _walletADV1 != _operator);
 		require(_walletADV2 != _walletADV3 && _walletADV2 != _walletOWN  && _walletADV2 != _operator);
@@ -120,14 +121,33 @@ contract MPECrowdsale is FinalizableCrowdsale, Pausable
 		internal 
 		whenNotPaused
 	{
-		// TODO - Minimum Purchase must be >= 2500 €uro
-		
-		//require( _weiAmount.mul(rate) >= 11.5 * 10e18 ); 
-		
+		/*
+		 *		Calculate how many tokens I'm purchasing
+		 */
 		tmpSold  = _weiAmount.mul( rate ).div( tokenPrice );
-		tmpBonus = tmpSold.div(p100).mul( _currentBonus(_currentStage()) );
+		
+		/*
+		 *		Minimum 10 tokens 
+		 */
+		require( tmpSold >= 10 * 10**18);
+		
+		/*
+		 *		During the stage one I can't sold more then 57500 token
+		 */
+		if( _currentStage() == stage.stage1 )
+		{
+			require( soldToken.add( tmpSold ) <= 57500 * 10**18 );
+		}
 
-		uint256 _avail = token.balanceOf(this);
+		/*
+		 *		Calculate the bonus token for the current stage
+		 */
+		tmpBonus = tmpSold.mul(precision).div(p100).mul( _currentBonus(_currentStage()) ).div(precision);
+
+		/*
+		 *		I have sufficient Token ?
+		 */
+		require( token.balanceOf(this) >= tmpSold.add(tmpBonus) );
 		
 		super._preValidatePurchase(_beneficiary, _weiAmount);
 	}
@@ -179,7 +199,7 @@ contract MPECrowdsale is FinalizableCrowdsale, Pausable
 
 		uint256 _t = _weiAmount.mul( rate ).div( tokenPrice );
 		
-		return _t.add( _t.div(p100).mul( _currentBonus(_currentStage()) ) );
+		return _t.add( _t.mul(precision).div(p100).mul( _currentBonus(_currentStage()) ).div(precision) );
 	}
 	
 	/**
@@ -219,6 +239,41 @@ contract MPECrowdsale is FinalizableCrowdsale, Pausable
 		}
 		
 		super.finalization();
+	}
+	
+	/**
+	 * @dev Send Token to the customer that have purchased the token via alternative method (Wire transfer, Credit card, Bitcoin, and so on)
+	 * @param _wallet destination address
+	 * @param _amount amount of the purchased token
+	 * @param _bonus amount of the bonus token for this purchase
+	 */
+	function sendToken( address _wallet, uint256 _amount, uint256 _bonus ) 
+		external 
+		onlyOwner 
+	{ 
+		require(_wallet != address(0)); 
+		require(_amount > 0);
+		require(_bonus > 0);
+		
+		/*
+		 *		During the stage one I can't sold more then 57500 token
+		 */
+		if( _currentStage() == stage.stage1 )
+		{
+			require( soldToken.add( _amount ) <= 57500 );
+		}
+
+		/*
+		 *		have I sufficient Token ?
+		 */
+		require( token.balanceOf(this) >= _amount.add(_bonus) );
+		
+		token.safeTransfer( _wallet, _amount.add(_bonus) );
+
+		soldToken  = soldToken.add( _amount );
+		bonusToken = bonusToken.add( _bonus );
+
+		emit TokenSent(_wallet, _amount, _bonus);
 	}
 	
 	// ------------------------------------------------------
