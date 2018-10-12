@@ -44,4 +44,5 @@ Thumbs.db
 
 node_modules
 build
+scripts
 MPEConfig.js
